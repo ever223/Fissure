@@ -9,22 +9,29 @@
 import Foundation
 
 public class LevelManager: NSObject {
-    let userDefaults = NSUserDefaults.standardUserDefaults()
     private var levels = [String: JSON]()
     private var orders = [AnyObject]()
     public var currentLevelId: String  {
         set {
-            userDefaults.setObject(newValue, forKey: "currentId")
+            Defaults[.currentId] = newValue
         }
         get  {
-            if let currentId = userDefaults.objectForKey("currentId") as? String {
-                return currentId
+            if let id = Defaults[.currentId] {
+                return id
             } else {
-                return "level-1"
+                Defaults[.currentId] = "level-1"
+                return Defaults[.currentId]!
             }
         }
     }
-    
+    public var maxId: Int  {
+        set {
+            Defaults[.maxId] = newValue
+        }
+        get  {
+            return Defaults[.maxId]
+        }
+    }
     // singleton
     class func shareInstance()-> LevelManager {
         struct Singleton {
@@ -68,32 +75,9 @@ public class LevelManager: NSObject {
     public func levelCount() -> Int {
         return orders.count
     }
-    
-    public func isComplete(levelId: String) -> Bool {
-        if let levelsCompletion = userDefaults.objectForKey("levels_complete") as? Dictionary<String, Bool> {
-            if let completed = levelsCompletion[levelId] {
-                return completed
-            }
-        }
-        return false
-    }
-    
-    public func setComplete(levelId: String) {
-        var completions = [String:AnyObject]()
-        if let levelsCompletion = userDefaults.objectForKey("levels_complete") as? Dictionary<String, Bool> {
-            completions = levelsCompletion
-        }
-        completions[levelId] = true
-        userDefaults.setObject(completions, forKey: "levels_complete")
-    }
-    
-    public func isAvailable(leveId: String) -> Bool {
-        
-        return false
-    }
-    public func setAvailable(levelId: String) {
-        
-    }
-    
-    
+}
+
+extension DefaultsKeys {
+    static let currentId = DefaultsKey<String?>("currentId")
+    static let maxId = DefaultsKey<Int>("maxId")
 }

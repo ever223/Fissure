@@ -33,12 +33,12 @@ class GameView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor.clearColor()
+        backgroundColor = .clearColor()
         
         sceneView = SKView(frame: bounds)
-        sceneView.showsFPS = true
-        sceneView.showsNodeCount = true
-        sceneView.showsDrawCount = true
+        sceneView.showsFPS = false
+        sceneView.showsNodeCount = false
+        sceneView.showsDrawCount = false
         addSubview(sceneView)
         
         scene = GameScene(size: bounds.size)

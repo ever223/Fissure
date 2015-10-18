@@ -138,9 +138,48 @@ class Control: NSObject {
                     node.addChild(emitter)
                 }
         }
-            // TODO Shape
-        default:
-            break
+        case .Shape:
+            node.alpha = 0
+            shape = SKShapeNode()
+            let points = data["points"].arrayValue
+            if points.count == 0 {
+                shape?.path = UIBezierPath(ovalInRect: CGRect(x: -radius, y: -radius, width: radius * 2, height: radius * 2)).CGPath
+                shape?.physicsBody = SKPhysicsBody(circleOfRadius: radius)
+            } else {
+                var first = true
+                let path = UIBezierPath()
+                for point in points {
+                    let mAngle = point["angle"].floatValue.cgf
+                    let mRadius = point["radius"].floatValue.cgf
+                    let px = cos(mAngle) * mRadius * radius
+                    let py = sin(mAngle) * mRadius * radius
+                    if first {
+                        path.moveToPoint(CGPoint(x: px, y: py))
+                        first = false
+                    } else {
+                        path.addLineToPoint(CGPoint(x: px, y: py))
+                    }
+                }
+                path.closePath()
+                shape?.path = path.CGPath
+                shape?.physicsBody = SKPhysicsBody(polygonFromPath: path.CGPath)
+            }
+            shape?.zRotation = angle
+            shape?.antialiased = true
+            shape?.fillColor = UIColor(white: 0.5, alpha: 0.7)
+            shape?.strokeColor = UIColor(white: 0.5, alpha: 0.7)
+            shape?.lineWidth = 1
+            shape?.position = position
+            
+            shape?.physicsBody?.friction = 0
+            shape?.physicsBody?.dynamic = true
+            shape?.physicsBody?.categoryBitMask = Static.physCatControlColl
+            shape?.physicsBody?.contactTestBitMask = 0
+            shape?.physicsBody?.collisionBitMask = 0
+            
+            node.physicsBody?.collisionBitMask = 0
+            node.physicsBody?.contactTestBitMask = 0
+            node.physicsBody?.collisionBitMask = 0
         }
         
         if let ico = icon {

@@ -28,8 +28,7 @@ class GameViewController: UIViewController {
         }
         return Singleton.instance!
     }
-    
-    
+
     // MARK: -  view life cycle
     
     override func loadView() {
@@ -57,9 +56,11 @@ class GameViewController: UIViewController {
     
     private func updateStars() {
         for (index, star) in gameView.starImageViews.enumerate() {
-            let levelId = LevelManager.shareInstance().levelIdAtPosition(index)
-            if LevelManager.shareInstance().isComplete(levelId) {
+            if index < LevelManager.shareInstance().maxId {
                 star.alpha = 1
+            } else if index > LevelManager.shareInstance().maxId {
+                star.alpha = 0
+                gameView.levelButtons[index].enabled = false
             } else {
                 star.alpha = 0
             }
@@ -72,13 +73,12 @@ class GameViewController: UIViewController {
         gameView.titleImage.alpha = 0
         UIView.animateWithDuration(NSTimeInterval(0.5), delay: NSTimeInterval(0.2), options: .CurveEaseInOut, animations: { () -> Void in
             self.gameView.titleImage.alpha = 1
-            }) { (finish: Bool) -> Void in
-                self.showLevelButtons()
-        }
+        }, completion: nil)
+        
+        self.showLevelButtons()
         UIView.animateWithDuration(NSTimeInterval(0.25), delay: NSTimeInterval(0), options: .CurveEaseInOut, animations: { () -> Void in
             self.gameView.levelMenuView.alpha = 1
             }, completion: nil)
-        
     }
     
     private func showLevelButtons() {
@@ -96,8 +96,12 @@ class GameViewController: UIViewController {
     }
     
     func pressedLevelButton(button: UIButton) {
-        menuToLevelId = LevelManager.shareInstance().levelIdAtPosition(button.tag)
-        gameView.scene.forceWin()
+        if button.tag <= LevelManager.shareInstance().maxId {
+            menuToLevelId = LevelManager.shareInstance().levelIdAtPosition(button.tag)
+            gameView.scene.forceWin()
+        } else {
+            menuToLevelId = nil
+        }
         pressedCloseMenu()
     }
     func pressedCloseMenu() {
@@ -114,10 +118,6 @@ class GameViewController: UIViewController {
 extension GameViewController: GameSceneDelegate {
     func sceneAllTargetsLit() {
         UIApplication.sharedApplication().beginIgnoringInteractionEvents()
-        if menuToLevelId != nil {
-            LevelManager.shareInstance().setComplete(currentLevelId)
-            self.updateStars()
-        }
     }
     func sceneReadyToTransition() {
         UIApplication.sharedApplication().endIgnoringInteractionEvents()
@@ -126,6 +126,9 @@ extension GameViewController: GameSceneDelegate {
             menuToLevelId = nil
         } else {
             var currentLevelNum = LevelManager.shareInstance().levelNumForId(currentLevelId)
+            if currentLevelNum == LevelManager.shareInstance().maxId {
+                LevelManager.shareInstance().maxId = currentLevelNum + 1
+            }
             currentLevelNum = (currentLevelNum + 1) % LevelManager.shareInstance().levelCount()
             loadData(LevelManager.shareInstance().levelIdAtPosition(currentLevelNum))
         }
